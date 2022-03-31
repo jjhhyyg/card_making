@@ -3,12 +3,33 @@ from docx.oxml.ns import qn
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.enum.section import WD_ORIENTATION
 from docx.shared import Pt
+from docx2pdf import convert
 import random
 
 sign = 'Erikkson'
 
 
+def createPdf(wordPath, pdfPath):
+    """
+    word转pdf
+    :param wordPath: word文件路径
+    :param pdfPath: 生成pdf文件路径
+    """
+    word = gencache.EnsureDispatch('Word.Application')
+    doc = word.Documents.Open(wordPath, ReadOnly=1)
+    doc.ExportAsFixedFormat(pdfPath,
+                            constants.wdExportFormatPDF,
+                            Item=constants.wdExportDocumentWithMarkup,
+                            CreateBookmarks=constants.wdExportCreateHeadingBookmarks)
+    word.Quit(constants.wdDoNotSaveChanges)
+
+
 def read_txt(file_name):
+    """
+    读入txt文件
+    :param file_name: 文件名（带后缀）
+    :return: 以行返回列表
+    """
     result = []
     with open(file_name, encoding='utf-8') as file:
         for line in file.readlines():
@@ -20,6 +41,7 @@ def read_txt(file_name):
 if __name__ == '__main__':
     name_list = read_txt('names.txt')
     sentence_list = read_txt('sentences.txt')
+    card_name_list = []
 
     for i in range(len(name_list)):
         document = Document()
@@ -41,6 +63,7 @@ if __name__ == '__main__':
         random_index = random.randint(0, len(sentence_list) - 1)
         sentence = sentence_list[random_index]
         card_name = f"{sign}给{name}的祝福"
+        card_name_list.append(card_name)
 
         # 名称左对齐
         para = document.add_paragraph()
@@ -65,3 +88,9 @@ if __name__ == '__main__':
         para.space_before = Pt(18)
 
         document.save(card_name + '.docx')
+
+    for card_name in card_name_list:
+        # 转换为pdf文档
+        name_docx = card_name + '.docx'
+        name_pdf = card_name + '.pdf'
+        convert(name_docx, name_pdf)
